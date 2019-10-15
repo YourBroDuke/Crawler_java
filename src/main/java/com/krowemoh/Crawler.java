@@ -30,6 +30,7 @@ public class Crawler {
             e.printStackTrace();
         }
 
+        assert cmd != null;
         if (cmd.hasOption("h")) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("Crawler", options);
@@ -46,22 +47,31 @@ public class Crawler {
 
         // ---- End Args Processing --- //
 
-        File file = null;
-        FileWriter fw = null;
+        File file;
+        FileWriter fw;
         BufferedWriter bw = null;
-        String site = "http://www.biqige.com";
-        // String crtChap = "/0_3/2550.html";
+        String site = "http://www.biqige.com";  // Site's base address
+        /*
+         * Set the current chapter relative URL according to -a flag
+         * Set /0_3/470.html as default
+         */
         String crtChap = appendFlag?appendArgVal:"/0_3/470.html";
         Document doc = new Document();
-        // System.out.print(res);
+
         try {
+            /*
+             * Open
+             * If the file is not existed, create a new file
+             */
             file = new File(outputFlag?outputArgVal:"novel.txt");
             if (!file.exists()) {
                 file.createNewFile();
             }
+
+            // Initializing
             fw = new FileWriter(file.getAbsoluteFile(), appendFlag);
             bw = new BufferedWriter(fw);
-            long startTime = 0, endTime = 0;
+            long startTime = 0, endTime;
 
             int cnt = 1;
             while (!doc.last()) {
@@ -69,8 +79,10 @@ public class Crawler {
                 System.out.println("Query(" + cnt + ") For : " + site + crtChap + "\nWith Time gap "+ (endTime-startTime));
                 cnt++;
                 startTime = endTime;
+                // Use HttpUtils to get the information stored in doc
                 doc = HttpUtils.getByUri(site + crtChap);
                 bw.write(doc.getContent());
+                // Use Document class's method to get next page's url
                 crtChap = doc.getNextPage();
                 Thread.sleep(200);
             }
